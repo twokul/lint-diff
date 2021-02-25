@@ -28,11 +28,16 @@ import {
 } from 'ramda'
 import { getChangedLinesFromDiff } from './lib/git'
 
-const linter = new CLIEngine()
+let linter;
+if (process.env.CUSTOM_ESLINT_CONFIG_FILE) {
+  linter = new CLIEngine({ configFile: process.env.CUSTOM_ESLINT_CONFIG_FILE });
+} else {
+  linter = new CLIEngine();
+}
 const formatter = linter.getFormatter()
 
 const getChangedFiles = pipeP(
-  commitRange => exec('git', ['diff', commitRange, '--name-only', '--diff-filter=ACM']),
+  commitRange => exec('git', ['diff', commitRange, '--name-only', '--relative', '--diff-filter=ACM']),
   prop('stdout'),
   split('\n'),
   filter(endsWith('.js')),
